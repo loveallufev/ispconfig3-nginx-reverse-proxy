@@ -10,7 +10,7 @@
 
 <tmpl_loop name="vhosts">
     <tmpl_if name='port' op='==' value='80'>
-        <VirtualHost *:82>
+        <VirtualHost *:8080>
 
             # Common
             ServerAdmin admin@rackster-server.ch
