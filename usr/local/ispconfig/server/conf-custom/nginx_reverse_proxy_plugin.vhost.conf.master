@@ -79,9 +79,6 @@ server {
         proxy_pass http://localhost:6081;
         #proxy_redirect  http://<tmpl_var name='domain'>:8080 http://<tmpl_var name='domain'>
         #proxy_redirect  http://www.<tmpl_var name='domain'>:8080 http://www.<tmpl_var name='domain'>
-        #<tmpl_if name='alias'>
-        #proxy_redirect  http://<tmpl_var name='alias'>:8080 http://<tmpl_var name='alias'>
-        #</tmpl_if>
     }
 
     ######################################################################
