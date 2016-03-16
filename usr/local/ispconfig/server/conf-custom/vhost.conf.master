@@ -13,7 +13,7 @@
         <VirtualHost *:8080>
 
             # Common
-            ServerAdmin admin@rackster-server.ch
+            ServerAdmin ductrungkhtn@gmail.com
             ServerName <tmpl_var name='domain'>
             <tmpl_if name='alias'>
                 <tmpl_var name='alias'>
