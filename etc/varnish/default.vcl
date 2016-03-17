@@ -14,7 +14,21 @@ backend default {
   .port = "8080";
 }
 
+acl purge {
+    "localhost";
+}
+
+
 sub vcl_recv {
+  # Allow purging
+  if(req.request == "PURGE"){
+      if(!client.ip ~ purge){
+          error 405 "Purging not allowed.";
+      }
+      return(lookup);
+  }
+
+
   # Allow the backend to serve up stale content if it is responding slowly.
   set req.grace = 6h;
 
@@ -55,6 +69,17 @@ sub vcl_recv {
   if (req.url ~ "(?i)\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm)(\?[a-z0-9]+)?$") {
     unset req.http.Cookie;
   }
+  
+  # Don't serve cached pages to logged in users
+  if ( req.http.cookie ~ "wordpress_logged_in" || req.url ~ "vaultpress=true" ) {
+      return( pass );
+  }
+
+  # Drop any cookies sent to WordPress.
+  if ( ! ( req.url ~ "wp-(login|admin)" ) ) {
+      unset req.http.cookie;
+  }
+
 
   # Handle compression correctly. Different browsers send different
   # "Accept-Encoding" headers, even though they mostly all support the same
@@ -118,6 +143,12 @@ sub vcl_fetch {
     # beresp == Back-end response from the web server.
     unset beresp.http.set-cookie;
   }
+  
+  # Drop any cookies WordPress tries to send back to the client.
+  if ( ! req.url ~ "wp-(login|admin)" && ! req.http.cookie ~ "wordpress_logged_in" ) {
+      unset beresp.http.set-cookie;
+  }
+
 
   # Allow items to be stale if needed.
   set beresp.grace = 6h;
