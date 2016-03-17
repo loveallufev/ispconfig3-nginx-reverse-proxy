@@ -1,0 +1,9 @@
+--- CAUSE ERROR --- update `wp_options` set `option_value`='/var/www/media.nauthenao.com/web/' where `option_name`='upload_path';
+-- OK -- update `wp_options` set `option_value`='http://media.nauthenao.com/' where `option_name`='upload_url_path';
+-- OK -- UPDATE wp_posts SET post_content = REPLACE(post_content,'http://nauthenao.com/wp-content/uploads/','http://media.nauthenao.com/');
+
+------
+
+UPDATE wp_posts SET post_content = REPLACE(post_content, 'http://media.nauthenao.com/', 'http://nauthenao.com/wp-content/uploads/');
+update `wp_options` set `option_value`='' where `option_name`='upload_path';
+update `wp_options` set `option_value`='' where `option_name`='upload_url_path';
