@@ -20,6 +20,9 @@ server {
     # recommended but not manditory directives
     # leave commented out unless you know what they are doing
     #limit_req zone=ddos-cage burst=50;
+
+    # #### UNCOMMENT THE BELOW LINE TO IMPROVE PERFORMANCE
+    # make sure in nginx.conf you defined cache_path already
     #proxy_cache nginx_cache;
 
     ######################################################################
@@ -32,6 +35,10 @@ server {
     ######################################################################
     ## SSL configuration
     ######################################################################
+    # include /etc/nginx/conf.d/ssl.conf;
+    # #ssl on;
+    # ssl_certificate /var/www/<tmpl_var name='domain'>/certificates/<tmpl_var name='domain'>-bundle.crt;
+    # ssl_certificate_key /var/www/<tmpl_var name='domain'>/certificates/<tmpl_var name='domain'>.key;
 
     # recommended but not manditory directive
     # leave commented out unless you know what it is doing
@@ -71,16 +78,23 @@ server {
         location ^~ /error { root /var/www; }
     </tmpl_if>
 
+
     # default location
     location / {
-        #proxy_pass http://apache2;
         include /etc/nginx/conf.d/proxy.conf;
-        # configure varnish
-        proxy_pass http://localhost:6081;
-        #proxy_redirect  http://<tmpl_var name='domain'>:8080 http://<tmpl_var name='domain'>
-        #proxy_redirect  http://www.<tmpl_var name='domain'>:8080 http://www.<tmpl_var name='domain'>
+        proxy_pass http://localhost:8080;
     }
 
+    location ~ \.php$ {
+        include /etc/nginx/conf.d/proxy.conf;
+        proxy_pass http://localhost:8080;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+    include /etc/nginx/expire_header.conf;
     ######################################################################
     ## Directives configuration
     ######################################################################
