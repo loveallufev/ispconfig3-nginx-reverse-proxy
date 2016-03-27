@@ -20,10 +20,10 @@ server {
     # recommended but not manditory directives
     # leave commented out unless you know what they are doing
     #limit_req zone=ddos-cage burst=50;
-
+    
     # #### UNCOMMENT THE BELOW LINE TO IMPROVE PERFORMANCE
     # make sure in nginx.conf you defined cache_path already
-    #proxy_cache nginx_cache;
+    proxy_cache nginx_cache;
 
     ######################################################################
     ## Log configuration
@@ -78,23 +78,44 @@ server {
         location ^~ /error { root /var/www; }
     </tmpl_if>
 
+    location ~* ^/(wp-admin|wp-login.php|dang-nhap|admin.php)
+    {
+            proxy_pass http://backend;
+    }
+
+    # All media (including uploaded) is under wp-content/ so
+    # instead of caching the response from apache, we're just
+    # going to use nginx to serve directly from there.
+    location ~* ^/(wp-content|wp-includes)/(.*)\.(gif|jpg|jpeg|png|ico|bmp|js|css|pdf|doc)$ {
+        root <tmpl_var name='web_document_root_www'>;
+    }
+
+    # Catch the wordpress cookies.
+    # Must be set to blank first for when they don't exist.
+    set $wordpress_auth "";
+    if ($http_cookie ~* "wordpress_logged_in_[^=]*=([^%]+)%7C") {
+        set $wordpress_auth wordpress_logged_in_$1;
+    }
 
     # default location
     location / {
         include /etc/nginx/conf.d/proxy.conf;
-        proxy_pass http://localhost:8080;
+        proxy_pass http://backend;
+        # 2 rules to dedicate the no caching rule for logged in users.
+        proxy_cache_bypass $wordpress_auth; # Do not cache the response.
+        proxy_no_cache $wordpress_auth; # Do not serve response from cache.
     }
 
-    location ~ \.php$ {
-        include /etc/nginx/conf.d/proxy.conf;
-        proxy_pass http://localhost:8080;
-    }
+    #location ~ \.php$ {
+    #    include /etc/nginx/conf.d/proxy.conf;
+    #    proxy_pass http://backend;
+    #}
 
     location ~ /\.ht {
         deny all;
     }
-
-    include /etc/nginx/expire_header.conf;
+    
+    include /etc/nginx/expire_header.conf; 
     ######################################################################
     ## Directives configuration
     ######################################################################
